@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gravitational.jobscheduler";
+option java_outer_classname = "JobSchedulerServerProto";
+
+package jobscheduler;
+
+// Scheduler server methods
+service Scheduler {
+  rpc RegisterWorker(RegisterReq) returns (RegisterRes) {}
+}
+
+message RegisterReq {
+  string address = 1;
+}
+
+message RegisterRes {
+  bool success = 1;
+  string ID = 2;
+}
+
+// Worker server methods
+service Worker {
+  rpc StartJob(StartJobReq) returns (StartJobRes) {}
+  rpc StopJob(StopJobReq) returns (StopJobRes) {}
+  rpc QueryJob(QueryJobReq) returns (QueryJobRes) {}
+}
+
+message StartJobReq {
+  string command = 1;
+  string path = 2;
+}
+
+message StartJobRes {
+  bool success = 1;
+  string error = 2;
+}
+
+message StopJobReq {
+  string path = 1;
+}
+
+message StopJobRes {
+  bool success = 1;
+  string error = 2;
+}
+
+message QueryJobReq {
+  string path = 1;
+}
+
+message QueryJobRes {
+  bool success = 1;
+  string error = 2;
+  bool done = 3;
+}
