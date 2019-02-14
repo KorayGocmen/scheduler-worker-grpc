@@ -30,6 +30,8 @@
 
 # Scheduler Overview
 
+* [Scheduler Details](scheduler/scheduler.md)
+* [API Docs](scheduler/api.md)
 * All config parameters are specified in the config.toml file
 * Support a GRPC-API (Appendix A) and an HTTP-API.
 * When a worker registers, a UUID is assigned to the worker and worker details are kept in a map.
@@ -53,6 +55,7 @@
 
 # Worker Overview
 
+* [Worker Details](worker/worker.md)
 * All config parameters are specified in the config.toml file
 * Support a GRPC-API (Appendix B)
 * Jobs are basically scripts that are held in the specified folder in the config.
