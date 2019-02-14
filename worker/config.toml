@@ -4,8 +4,5 @@ use_tls = false
 crt_file = "server.pem"
 key_file = "server.key"
 
-[http_server]
-addr = "127.0.0.1:3000"
-
 [scheduler]
 addr = "127.0.0.1:50000"

@@ -8,11 +8,24 @@ import (
 	"sync"
 )
 
+// jobsMutex is the lock to access jobs map.
+// jobs is the map that holds current/past jobs.
+// 		- key: job id
+// 		- value: pointer to the created job object.
 var (
 	jobsMutex = &sync.Mutex{}
 	jobs      = make(map[string]*job)
 )
 
+// job holds information about the ongoing or past jobs,
+// that were triggered by the scheduler.
+// 		- id: UUID assigned by the worker and sent back to the scheduler.
+// 		- command: command which the scheduler run the job with
+// 		- path: path to the job file/executable sent by the scheduler.
+// 		- outFilePath: file path to where the output of the job will be piped.
+// 		- cmd: pointer to the cmd.Exec command to get job status etc.
+// 		- done: whether if job is done (default false)
+//    - err: error while running the job (default nil)
 type job struct {
 	id          string
 	command     string
