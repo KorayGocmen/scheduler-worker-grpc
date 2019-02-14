@@ -64,7 +64,7 @@ func startGRPCServer() {
 			config.GRPCServer.KeyFile,
 		)
 		if err != nil {
-			fatal(fmt.Sprintf("Failed to generate credentials", err))
+			fatal(fmt.Sprint("Failed to generate credentials", err))
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}

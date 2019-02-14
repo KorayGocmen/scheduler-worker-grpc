@@ -34,5 +34,5 @@ func main() {
 
 func fatal(message string) {
 	deregisterWorker()
-	log.Fatalf(message)
+	log.Fatalln(message)
 }
