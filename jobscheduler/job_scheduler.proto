@@ -9,6 +9,7 @@ package jobscheduler;
 // Scheduler server methods
 service Scheduler {
   rpc RegisterWorker(RegisterReq) returns (RegisterRes) {}
+  rpc DeregisterWorker(DeregisterReq) returns (DeregisterRes) {}
 }
 
 message RegisterReq {
@@ -20,11 +21,20 @@ message RegisterRes {
   string ID = 2;
 }
 
+message DeregisterReq {
+  string ID = 1;
+}
+
+message DeregisterRes {
+  bool success = 1;
+}
+
 // Worker server methods
 service Worker {
   rpc StartJob(StartJobReq) returns (StartJobRes) {}
   rpc StopJob(StopJobReq) returns (StopJobRes) {}
   rpc QueryJob(QueryJobReq) returns (QueryJobRes) {}
+  // rpc StreamJob(StreamJobReq) returns (stream StreamJobRes) {}
 }
 
 message StartJobReq {
@@ -55,3 +65,12 @@ message QueryJobRes {
   string error = 2;
   bool done = 3;
 }
+
+// message StreamJobReq {
+//   string path = 1;
+// }
+
+// message StreamJobRes {
+//   bool success = 1;
+//   string output = 2;
+// }

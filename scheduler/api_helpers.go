@@ -1,41 +1,22 @@
 package main
 
-import (
-	"context"
-	"time"
+type rStartJobReq struct {
+	Command  string `json:"command"`
+	Path     string `json:"path"`
+	WorkerID string `json:"worker_id"`
+}
 
-	pb "github.com/koraygocmen/gravitational/jobscheduler"
-	"google.golang.org/grpc"
-)
+type rStopJobReq struct {
+	Path     string `json:"path"`
+	WorkerID string `json:"worker_id"`
+}
 
-func startJobOnWorker(req rStartJobReq) (bool, string) {
-	workersMutex.Lock()
-	defer workersMutex.Unlock()
+type rQueryJobReq struct {
+	Path     string `json:"path"`
+	WorkerID string `json:"worker_id"`
+}
 
-	worker, ok := workers[req.WorkerID]
-	if !ok {
-		return false, "Worker not found."
-	}
-
-	conn, err := grpc.Dial(worker.addr, grpc.WithInsecure())
-	if err != nil {
-		return false, err.Error()
-	}
-	defer conn.Close()
-	c := pb.NewWorkerClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	startJobReq := pb.StartJobReq{
-		Command: req.Command,
-		Path:    req.Path,
-	}
-
-	r, err := c.StartJob(ctx, &startJobReq)
-	if err != nil {
-		return false, err.Error()
-	}
-
-	return r.Success, r.Error
+type rStreamJobReq struct {
+	Path     string `json:"path"`
+	WorkerID string `json:"worker_id"`
 }

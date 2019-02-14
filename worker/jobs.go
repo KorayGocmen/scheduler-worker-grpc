@@ -17,6 +17,7 @@ type job struct {
 	command     string
 	path        string
 	outFilePath string
+	cmd         *exec.Cmd
 	done        bool
 	err         error
 }
@@ -27,33 +28,37 @@ func startScript(command, path string) (bool, string) {
 
 	timestamp := time.Now().Format("20060102150405")
 	outFilePath := fmt.Sprintf("%s.out", timestamp)
+
+	outfile, err := os.Create(outFilePath)
+	if err != nil {
+		return false, err.Error()
+	}
+	defer outfile.Close()
+
+	cmd := exec.Command(command, path)
+	cmd.Stdout = outfile
+
+	if err = cmd.Start(); err != nil {
+		return false, err.Error()
+	}
+
 	newJob := job{
 		command:     command,
 		path:        path,
 		outFilePath: outFilePath,
+		cmd:         cmd,
 		done:        false,
 		err:         nil,
 	}
-
 	jobs[path] = &newJob
 
-	cmd := exec.Command(command, path)
-
-	outfile, err := os.Create(outFilePath)
-	if err != nil {
-		jobs[path].done = true
-		jobs[path].err = err
-		return false, err.Error()
-	}
-
-	defer outfile.Close()
-	cmd.Stdout = outfile
-
-	if err = cmd.Start(); err != nil {
-		jobs[path].done = true
-		jobs[path].err = err
-		return false, err.Error()
-	}
+	// Get the status of the job async.
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			newJob.err = err
+		}
+		newJob.done = true
+	}()
 
 	return true, ""
 }
@@ -67,7 +72,10 @@ func stopScript(path string) (bool, string) {
 		return false, "Job not found."
 	}
 
-	job.done = true
+	if err := job.cmd.Process.Kill(); err != nil {
+		return false, err.Error()
+	}
+
 	return true, ""
 }
 

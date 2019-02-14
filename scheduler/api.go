@@ -10,12 +10,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type rStartJobReq struct {
-	Command  string `json:"command"`
-	Path     string `json:"path"`
-	WorkerID string `json:"worker_id"`
-}
-
 func rPong(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "pong\n")
@@ -36,7 +30,7 @@ func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if success, err := startJobOnWorker(startJobReq); !success {
+	if ok, err := startJobOnWorker(startJobReq); !ok {
 		http.Error(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -45,20 +39,73 @@ func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprintf(w, "ok\n")
 }
 
+func rStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	stopJobReq := rStopJobReq{}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = json.Unmarshal(body, &stopJobReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if ok, err := stopJobOnWorker(stopJobReq); !ok {
+		http.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "ok\n")
+}
+
+func rQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	queryJobReq := rQueryJobReq{}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = json.Unmarshal(body, &queryJobReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	ok, queryError, done := queryJobOnWorker(queryJobReq)
+	if !ok {
+		http.Error(w, queryError, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%t\n", done)
+}
+
 func createRouter() *httprouter.Router {
 	router := httprouter.New()
+
 	router.GET("/ping", rPong)
 	router.POST("/start", rStartJob)
+	router.POST("/stop", rStopJob)
+	router.POST("/query", rQueryJob)
+
 	return router
 }
 
 func api() {
-	APIAddr := ":3000"
 	srv := &http.Server{
-		Addr:    APIAddr,
+		Addr:    config.HTTPServer.Addr,
 		Handler: createRouter(),
 	}
 
+	log.Println("HTTP Server listening on", config.HTTPServer.Addr)
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
