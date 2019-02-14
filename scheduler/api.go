@@ -10,12 +10,12 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func rPong(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func apiPong(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "pong\n")
 }
 
-func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func apiStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	startJobReq := apiStartJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -30,9 +30,9 @@ func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	ok, startErr, jobID := startJobOnWorker(startJobReq)
-	if !ok {
-		http.Error(w, startErr, http.StatusInternalServerError)
+	jobID, err := startJobOnWorker(startJobReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -41,7 +41,7 @@ func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	json.NewEncoder(w).Encode(apiStartJobRes{JobID: jobID})
 }
 
-func rStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func apiStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	stopJobReq := apiStopJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -56,8 +56,8 @@ func rStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if ok, err := stopJobOnWorker(stopJobReq); !ok {
-		http.Error(w, err, http.StatusInternalServerError)
+	if err := stopJobOnWorker(stopJobReq); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -66,7 +66,7 @@ func rStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	json.NewEncoder(w).Encode(apiStopJobRes{Success: true})
 }
 
-func rQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func apiQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	queryJobReq := apiQueryJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -81,24 +81,30 @@ func rQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	ok, queryError, done := queryJobOnWorker(queryJobReq)
-	if !ok {
-		http.Error(w, queryError, http.StatusInternalServerError)
+	jobDone, jobError, jobErrorText, err := queryJobOnWorker(queryJobReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	queryJobRes := apiQueryJobRes{
+		Done:      jobDone,
+		Error:     jobError,
+		ErrorText: jobErrorText,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(apiQueryJobRes{Done: done})
+	json.NewEncoder(w).Encode(queryJobRes)
 }
 
 func createRouter() *httprouter.Router {
 	router := httprouter.New()
 
-	router.GET("/ping", rPong)
-	router.POST("/start", rStartJob)
-	router.POST("/stop", rStopJob)
-	router.POST("/query", rQueryJob)
+	router.GET("/ping", apiPong)
+	router.POST("/start", apiStartJob)
+	router.POST("/stop", apiStopJob)
+	router.POST("/query", apiQueryJob)
 
 	return router
 }

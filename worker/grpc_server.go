@@ -14,37 +14,44 @@ import (
 // server holds the GRPC worker server instance.
 type server struct{}
 
-// StartJob
+// StartJob starts a new job with the given command and the path
+// Command can be any exectuable command on the worker and the path
+// is the relative path of the script.
 func (s *server) StartJob(ctx context.Context, r *pb.StartJobReq) (*pb.StartJobRes, error) {
-	success, err, jobID := startScript(r.Command, r.Path)
+	jobID, err := startScript(r.Command, r.Path)
+	if err != nil {
+		return nil, err
+	}
 
 	res := pb.StartJobRes{
-		Success: success,
-		Error:   err,
-		JobID:   jobID,
+		JobID: jobID,
 	}
+
 	return &res, nil
 }
 
-// StopJob
+// StopJob stops a running job with the given job id.
 func (s *server) StopJob(ctx context.Context, r *pb.StopJobReq) (*pb.StopJobRes, error) {
-	success, err := stopScript(r.JobID)
-
-	res := pb.StopJobRes{
-		Success: success,
-		Error:   err,
+	if err := stopScript(r.JobID); err != nil {
+		return nil, err
 	}
-	return &res, nil
+
+	return &pb.StopJobRes{}, nil
 }
 
-// QueryJob
+// QueryJob returns the status of job with the given job id.
+// The status of the job is inside the `Done` variable in response
+// and it specifies if the job is still running (true), or stopped (false).
 func (s *server) QueryJob(ctx context.Context, r *pb.QueryJobReq) (*pb.QueryJobRes, error) {
-	success, err, done := queryScript(r.JobID)
+	jobDone, jobError, jobErrorText, err := queryScript(r.JobID)
+	if err != nil {
+		return nil, err
+	}
 
 	res := pb.QueryJobRes{
-		Success: success,
-		Error:   err,
-		Done:    done,
+		Done:      jobDone,
+		Error:     jobError,
+		ErrorText: jobErrorText,
 	}
 	return &res, nil
 }

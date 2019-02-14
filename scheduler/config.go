@@ -27,10 +27,10 @@ var (
 )
 
 func loadConfig() {
-	var localConfig tomlConfig
-	if _, err := toml.DecodeFile("scheduler/config.toml", &localConfig); err != nil {
+	var lConfig tomlConfig
+	if _, err := toml.DecodeFile("scheduler/config.toml", &lConfig); err != nil {
 		log.Fatalln("Error decoding config file", err)
 	}
 
-	config = localConfig
+	config = lConfig
 }

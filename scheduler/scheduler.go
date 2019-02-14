@@ -11,6 +11,7 @@ func init() {
 	loadConfig()
 }
 
+// Entry point of the scheduler application.
 func main() {
 
 	go api()

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"sync"
-	"time"
 )
 
 var (
@@ -23,20 +23,22 @@ type job struct {
 	err         error
 }
 
-func startScript(command, path string) (bool, string, string) {
+// startScript start a new job.
+// Returns:
+//		- string: job id
+//		- error: nil if no error
+func startScript(command, path string) (string, error) {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
-
-	timestamp := time.Now().Format("20060102150405")
-	outFilePath := fmt.Sprintf("%s.out", timestamp)
 
 	// TODO: Change this back
 	// jobID := uuid.New().String()
 	jobID := "test_job"
+	outFilePath := fmt.Sprintf("%s.out", jobID)
 
 	outfile, err := os.Create(outFilePath)
 	if err != nil {
-		return false, err.Error(), ""
+		return "", err
 	}
 	defer outfile.Close()
 
@@ -44,7 +46,7 @@ func startScript(command, path string) (bool, string, string) {
 	cmd.Stdout = outfile
 
 	if err = cmd.Start(); err != nil {
-		return false, err.Error(), ""
+		return "", err
 	}
 
 	newJob := job{
@@ -66,33 +68,53 @@ func startScript(command, path string) (bool, string, string) {
 		newJob.done = true
 	}()
 
-	return true, "", jobID
+	return jobID, nil
 }
 
-func stopScript(jobID string) (bool, string) {
+// stopScript stop a running job.
+// Returns:
+//		- error: nil if no error
+func stopScript(jobID string) error {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
 
 	job, found := jobs[jobID]
 	if !found {
-		return false, "Job not found."
+		return errors.New("job not found")
 	}
 
 	if err := job.cmd.Process.Kill(); err != nil {
-		return false, err.Error()
+		return err
 	}
 
-	return true, ""
+	return nil
 }
 
-func queryScript(jobID string) (bool, string, bool) {
+// queryScript check if job is done or not.
+// Returns:
+//		- bool: job status (true if job is done)
+//		- bool: job error (true if job had an error)
+// 		- string: job error text ("" if job error is false)
+//		- error: nil if no error
+func queryScript(jobID string) (bool, bool, string, error) {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
 
 	job, found := jobs[jobID]
 	if !found {
-		return false, "Job not found.", false
+		return false, false, "", errors.New("job not found")
 	}
 
-	return true, "", job.done
+	var (
+		jobDone      = job.done
+		jobError     = false
+		jobErrorText = ""
+	)
+
+	if job.err != nil {
+		jobError = true
+		jobErrorText = job.err.Error()
+	}
+
+	return jobDone, jobError, jobErrorText, nil
 }

@@ -9,6 +9,8 @@ import (
 )
 
 var (
+	// workerID is the id assigned by the scheduler
+	// after registering on scheduler.
 	workerID string
 )
 
@@ -16,6 +18,7 @@ func init() {
 	loadConfig()
 }
 
+// Entry point of the worker application.
 func main() {
 
 	go startGRPCServer()

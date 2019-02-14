@@ -2,24 +2,30 @@ package main
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	pb "github.com/koraygocmen/gravitational/jobscheduler"
 	"google.golang.org/grpc"
 )
 
-func startJobOnWorker(req apiStartJobReq) (bool, string, string) {
+// startJobOnWorker translates the http start request to grpc
+// request on the workers.
+// Returns:
+// 		- string: job id
+// 		- error: nil if no error
+func startJobOnWorker(req apiStartJobReq) (string, error) {
 	workersMutex.Lock()
 	defer workersMutex.Unlock()
 
 	worker, ok := workers[req.WorkerID]
 	if !ok {
-		return false, "Worker not found.", ""
+		return "", errors.New("worker not found")
 	}
 
 	conn, err := grpc.Dial(worker.addr, grpc.WithInsecure())
 	if err != nil {
-		return false, err.Error(), ""
+		return "", err
 	}
 	defer conn.Close()
 	c := pb.NewWorkerClient(conn)
@@ -34,24 +40,28 @@ func startJobOnWorker(req apiStartJobReq) (bool, string, string) {
 
 	r, err := c.StartJob(ctx, &startJobReq)
 	if err != nil {
-		return false, err.Error(), ""
+		return "", err
 	}
 
-	return r.Success, r.Error, r.JobID
+	return r.JobID, nil
 }
 
-func stopJobOnWorker(req apiStopJobReq) (bool, string) {
+// stopJobOnWorker translates the http stop request to grpc
+// request on the workers.
+// Returns:
+// 		- error: nil if no error
+func stopJobOnWorker(req apiStopJobReq) error {
 	workersMutex.Lock()
 	defer workersMutex.Unlock()
 
 	worker, ok := workers[req.WorkerID]
 	if !ok {
-		return false, "Worker not found."
+		return errors.New("worker not found")
 	}
 
 	conn, err := grpc.Dial(worker.addr, grpc.WithInsecure())
 	if err != nil {
-		return false, err.Error()
+		return err
 	}
 	defer conn.Close()
 	c := pb.NewWorkerClient(conn)
@@ -63,26 +73,32 @@ func stopJobOnWorker(req apiStopJobReq) (bool, string) {
 		JobID: req.JobID,
 	}
 
-	r, err := c.StopJob(ctx, &stopJobReq)
-	if err != nil {
-		return false, err.Error()
+	if _, err := c.StopJob(ctx, &stopJobReq); err != nil {
+		return err
 	}
 
-	return r.Success, r.Error
+	return nil
 }
 
-func queryJobOnWorker(req apiQueryJobReq) (bool, string, bool) {
+// queryJobOnWorker translates the http query request to grpc
+// request on the workers.
+// Returns:
+//		- bool: job status (true if job is done)
+//		- bool: job error (true if job had an error)
+// 		- string: job error text ("" if job error is false)
+//		- error: nil if no error
+func queryJobOnWorker(req apiQueryJobReq) (bool, bool, string, error) {
 	workersMutex.Lock()
 	defer workersMutex.Unlock()
 
 	worker, ok := workers[req.WorkerID]
 	if !ok {
-		return false, "Worker not found.", false
+		return false, false, "", errors.New("worker not found")
 	}
 
 	conn, err := grpc.Dial(worker.addr, grpc.WithInsecure())
 	if err != nil {
-		return false, err.Error(), false
+		return false, false, "", err
 	}
 	defer conn.Close()
 	c := pb.NewWorkerClient(conn)
@@ -96,8 +112,8 @@ func queryJobOnWorker(req apiQueryJobReq) (bool, string, bool) {
 
 	r, err := c.QueryJob(ctx, &queryJobReq)
 	if err != nil {
-		return false, err.Error(), false
+		return false, false, "", err
 	}
 
-	return r.Success, r.Error, r.Done
+	return r.Done, r.Error, r.ErrorText, nil
 }

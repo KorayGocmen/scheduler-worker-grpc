@@ -43,9 +43,7 @@ message StartJobReq {
 }
 
 message StartJobRes {
-  bool success = 1;
-  string error = 2;
-  string jobID = 3;
+  string jobID = 1;
 }
 
 message StopJobReq {
@@ -53,8 +51,6 @@ message StopJobReq {
 }
 
 message StopJobRes {
-  bool success = 1;
-  string error = 2;
 }
 
 message QueryJobReq {
@@ -62,9 +58,9 @@ message QueryJobReq {
 }
 
 message QueryJobRes {
-  bool success = 1;
-  string error = 2;
-  bool done = 3;
+  bool done = 1;
+  bool error = 2;
+  string errorText = 3;
 }
 
 // message StreamJobReq {
@@ -72,6 +68,5 @@ message QueryJobRes {
 // }
 
 // message StreamJobRes {
-//   bool success = 1;
-//   string output = 2;
+//   string output = 1;
 // }

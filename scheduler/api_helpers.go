@@ -31,5 +31,7 @@ type apiQueryJobReq struct {
 
 // apiQueryJobRes returned API payload for `/query`
 type apiQueryJobRes struct {
-	Done bool `json:"done"`
+	Done      bool   `json:"done"`
+	Error     bool   `json:"error"`
+	ErrorText string `json:"error_text"`
 }
