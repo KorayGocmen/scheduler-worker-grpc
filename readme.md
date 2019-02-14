@@ -62,3 +62,8 @@
 * When a job is started by the scheduler, a job object is created by the worker
   * This object specifies where the output of the job will be piped.
   * Also holds which command and which path was requested.
+
+## TODO:
+---
+- Finish streaming output of a job
+- Change the insecure dialing for grpc
