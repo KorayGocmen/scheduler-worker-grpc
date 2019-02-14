@@ -35,3 +35,8 @@ type apiQueryJobRes struct {
 	Error     bool   `json:"error"`
 	ErrorText string `json:"error_text"`
 }
+
+// apiError is used as a generic api response error
+type apiError struct {
+	Error string `json:"error"`
+}

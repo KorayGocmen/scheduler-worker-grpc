@@ -83,6 +83,10 @@ func stopScript(jobID string) error {
 		return errors.New("job not found")
 	}
 
+	if job.done {
+		return nil
+	}
+
 	if err := job.cmd.Process.Kill(); err != nil {
 		return err
 	}

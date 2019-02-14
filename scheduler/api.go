@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,29 +9,30 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func apiPong(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "pong\n")
-}
-
 func apiStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	startJobReq := apiStartJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
 	err = json.Unmarshal(body, &startJobReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
 	jobID, err := startJobOnWorker(startJobReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
@@ -46,18 +46,24 @@ func apiStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
 	err = json.Unmarshal(body, &stopJobReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
 	if err := stopJobOnWorker(stopJobReq); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
@@ -71,19 +77,25 @@ func apiQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
 	err = json.Unmarshal(body, &queryJobReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
 	jobDone, jobError, jobErrorText, err := queryJobOnWorker(queryJobReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(apiError{Error: err.Error()})
 		return
 	}
 
@@ -101,7 +113,6 @@ func apiQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func createRouter() *httprouter.Router {
 	router := httprouter.New()
 
-	router.GET("/ping", apiPong)
 	router.POST("/start", apiStartJob)
 	router.POST("/stop", apiStopJob)
 	router.POST("/query", apiQueryJob)
