@@ -1,4 +1,4 @@
 scheduler/scheduler
-rm worker/worker
+worker/worker
 
 *.out

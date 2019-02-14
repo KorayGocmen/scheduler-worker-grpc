@@ -14,6 +14,7 @@ var (
 )
 
 type job struct {
+	id          string
 	command     string
 	path        string
 	outFilePath string
@@ -22,16 +23,20 @@ type job struct {
 	err         error
 }
 
-func startScript(command, path string) (bool, string) {
+func startScript(command, path string) (bool, string, string) {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
 
 	timestamp := time.Now().Format("20060102150405")
 	outFilePath := fmt.Sprintf("%s.out", timestamp)
 
+	// TODO: Change this back
+	// jobID := uuid.New().String()
+	jobID := "test_job"
+
 	outfile, err := os.Create(outFilePath)
 	if err != nil {
-		return false, err.Error()
+		return false, err.Error(), ""
 	}
 	defer outfile.Close()
 
@@ -39,10 +44,11 @@ func startScript(command, path string) (bool, string) {
 	cmd.Stdout = outfile
 
 	if err = cmd.Start(); err != nil {
-		return false, err.Error()
+		return false, err.Error(), ""
 	}
 
 	newJob := job{
+		id:          jobID,
 		command:     command,
 		path:        path,
 		outFilePath: outFilePath,
@@ -50,7 +56,7 @@ func startScript(command, path string) (bool, string) {
 		done:        false,
 		err:         nil,
 	}
-	jobs[path] = &newJob
+	jobs[jobID] = &newJob
 
 	// Get the status of the job async.
 	go func() {
@@ -60,14 +66,14 @@ func startScript(command, path string) (bool, string) {
 		newJob.done = true
 	}()
 
-	return true, ""
+	return true, "", jobID
 }
 
-func stopScript(path string) (bool, string) {
+func stopScript(jobID string) (bool, string) {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
 
-	job, found := jobs[path]
+	job, found := jobs[jobID]
 	if !found {
 		return false, "Job not found."
 	}
@@ -79,11 +85,11 @@ func stopScript(path string) (bool, string) {
 	return true, ""
 }
 
-func queryScript(path string) (bool, string, bool) {
+func queryScript(jobID string) (bool, string, bool) {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
 
-	job, found := jobs[path]
+	job, found := jobs[jobID]
 	if !found {
 		return false, "Job not found.", false
 	}

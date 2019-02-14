@@ -16,7 +16,7 @@ func rPong(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	startJobReq := rStartJobReq{}
+	startJobReq := apiStartJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -30,17 +30,19 @@ func rStartJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	if ok, err := startJobOnWorker(startJobReq); !ok {
-		http.Error(w, err, http.StatusInternalServerError)
+	ok, startErr, jobID := startJobOnWorker(startJobReq)
+	if !ok {
+		http.Error(w, startErr, http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "ok\n")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(apiStartJobRes{JobID: jobID})
 }
 
 func rStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	stopJobReq := rStopJobReq{}
+	stopJobReq := apiStopJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -59,12 +61,13 @@ func rStopJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "ok\n")
+	json.NewEncoder(w).Encode(apiStopJobRes{Success: true})
 }
 
 func rQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	queryJobReq := rQueryJobReq{}
+	queryJobReq := apiQueryJobReq{}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -84,8 +87,9 @@ func rQueryJob(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "%t\n", done)
+	json.NewEncoder(w).Encode(apiQueryJobRes{Done: done})
 }
 
 func createRouter() *httprouter.Router {

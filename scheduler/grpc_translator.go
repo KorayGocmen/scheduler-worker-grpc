@@ -8,18 +8,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-func startJobOnWorker(req rStartJobReq) (bool, string) {
+func startJobOnWorker(req apiStartJobReq) (bool, string, string) {
 	workersMutex.Lock()
 	defer workersMutex.Unlock()
 
 	worker, ok := workers[req.WorkerID]
 	if !ok {
-		return false, "Worker not found."
+		return false, "Worker not found.", ""
 	}
 
 	conn, err := grpc.Dial(worker.addr, grpc.WithInsecure())
 	if err != nil {
-		return false, err.Error()
+		return false, err.Error(), ""
 	}
 	defer conn.Close()
 	c := pb.NewWorkerClient(conn)
@@ -34,13 +34,13 @@ func startJobOnWorker(req rStartJobReq) (bool, string) {
 
 	r, err := c.StartJob(ctx, &startJobReq)
 	if err != nil {
-		return false, err.Error()
+		return false, err.Error(), ""
 	}
 
-	return r.Success, r.Error
+	return r.Success, r.Error, r.JobID
 }
 
-func stopJobOnWorker(req rStopJobReq) (bool, string) {
+func stopJobOnWorker(req apiStopJobReq) (bool, string) {
 	workersMutex.Lock()
 	defer workersMutex.Unlock()
 
@@ -60,7 +60,7 @@ func stopJobOnWorker(req rStopJobReq) (bool, string) {
 	defer cancel()
 
 	stopJobReq := pb.StopJobReq{
-		Path: req.Path,
+		JobID: req.JobID,
 	}
 
 	r, err := c.StopJob(ctx, &stopJobReq)
@@ -71,7 +71,7 @@ func stopJobOnWorker(req rStopJobReq) (bool, string) {
 	return r.Success, r.Error
 }
 
-func queryJobOnWorker(req rQueryJobReq) (bool, string, bool) {
+func queryJobOnWorker(req apiQueryJobReq) (bool, string, bool) {
 	workersMutex.Lock()
 	defer workersMutex.Unlock()
 
@@ -91,7 +91,7 @@ func queryJobOnWorker(req rQueryJobReq) (bool, string, bool) {
 	defer cancel()
 
 	queryJobReq := pb.QueryJobReq{
-		Path: req.Path,
+		JobID: req.JobID,
 	}
 
 	r, err := c.QueryJob(ctx, &queryJobReq)

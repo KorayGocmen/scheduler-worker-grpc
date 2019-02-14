@@ -20,7 +20,7 @@ func newWorker(address string) string {
 
 	// TODO: Change this back
 	// workerID := uuid.New().String()
-	workerID := "test"
+	workerID := "test_worker"
 	workers[workerID] = &worker{
 		id:   workerID,
 		addr: address,

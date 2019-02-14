@@ -1,22 +1,35 @@
 package main
 
-type rStartJobReq struct {
+// apiStartJobReq expected API payload for `/start`
+type apiStartJobReq struct {
 	Command  string `json:"command"`
 	Path     string `json:"path"`
 	WorkerID string `json:"worker_id"`
 }
 
-type rStopJobReq struct {
-	Path     string `json:"path"`
+// apiStartJobRes returned API payload for `/start`
+type apiStartJobRes struct {
+	JobID string `json:"job_id"`
+}
+
+// apiStopJobReq expected API payload for `/stop`
+type apiStopJobReq struct {
+	JobID    string `json:"job_id"`
 	WorkerID string `json:"worker_id"`
 }
 
-type rQueryJobReq struct {
-	Path     string `json:"path"`
+// apiStopJobRes returned API payload for `/stop`
+type apiStopJobRes struct {
+	Success bool `json:"success"`
+}
+
+// apiQueryJobReq expected API payload for `/query`
+type apiQueryJobReq struct {
+	JobID    string `json:"job_id"`
 	WorkerID string `json:"worker_id"`
 }
 
-type rStreamJobReq struct {
-	Path     string `json:"path"`
-	WorkerID string `json:"worker_id"`
+// apiQueryJobRes returned API payload for `/query`
+type apiQueryJobRes struct {
+	Done bool `json:"done"`
 }

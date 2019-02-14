@@ -28,8 +28,8 @@ func registerWorker() {
 		log.Fatalf("could not register: %v", err)
 	}
 
-	workerID = r.ID
-	log.Printf("Registered OK: %t, ID: %s", r.Success, r.ID)
+	workerID = r.WorkerID
+	log.Printf("Registered OK: %t, ID: %s", r.Success, r.WorkerID)
 }
 
 func deregisterWorker() {
@@ -44,7 +44,7 @@ func deregisterWorker() {
 	defer cancel()
 
 	deregisterReq := pb.DeregisterReq{
-		ID: workerID,
+		WorkerID: workerID,
 	}
 	r, err := c.DeregisterWorker(ctx, &deregisterReq)
 	if err != nil {

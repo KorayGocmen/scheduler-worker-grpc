@@ -20,8 +20,8 @@ func (s *server) RegisterWorker(ctx context.Context, r *pb.RegisterReq) (*pb.Reg
 	workerID := newWorker(r.Address)
 
 	res := pb.RegisterRes{
-		Success: true,
-		ID:      workerID,
+		Success:  true,
+		WorkerID: workerID,
 	}
 
 	log.Printf("New worker with ID: %s is online\n", workerID)
@@ -32,13 +32,13 @@ func (s *server) RegisterWorker(ctx context.Context, r *pb.RegisterReq) (*pb.Reg
 // Workers call this method when they are going offline.
 func (s *server) DeregisterWorker(ctx context.Context, r *pb.DeregisterReq) (*pb.DeregisterRes, error) {
 
-	delWorker(r.ID)
+	delWorker(r.WorkerID)
 
 	res := pb.DeregisterRes{
 		Success: true,
 	}
 
-	log.Printf("Worker with ID: %s is offline\n", r.ID)
+	log.Printf("Worker with ID: %s is offline\n", r.WorkerID)
 	return &res, nil
 }
 

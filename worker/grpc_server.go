@@ -16,18 +16,19 @@ type server struct{}
 
 // StartJob
 func (s *server) StartJob(ctx context.Context, r *pb.StartJobReq) (*pb.StartJobRes, error) {
-	success, err := startScript(r.Command, r.Path)
+	success, err, jobID := startScript(r.Command, r.Path)
 
 	res := pb.StartJobRes{
 		Success: success,
 		Error:   err,
+		JobID:   jobID,
 	}
 	return &res, nil
 }
 
 // StopJob
 func (s *server) StopJob(ctx context.Context, r *pb.StopJobReq) (*pb.StopJobRes, error) {
-	success, err := stopScript(r.Path)
+	success, err := stopScript(r.JobID)
 
 	res := pb.StopJobRes{
 		Success: success,
@@ -38,7 +39,7 @@ func (s *server) StopJob(ctx context.Context, r *pb.StopJobReq) (*pb.StopJobRes,
 
 // QueryJob
 func (s *server) QueryJob(ctx context.Context, r *pb.QueryJobReq) (*pb.QueryJobRes, error) {
-	success, err, done := queryScript(r.Path)
+	success, err, done := queryScript(r.JobID)
 
 	res := pb.QueryJobRes{
 		Success: success,
