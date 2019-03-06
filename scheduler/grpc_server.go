@@ -20,7 +20,6 @@ func (s *server) RegisterWorker(ctx context.Context, r *pb.RegisterReq) (*pb.Reg
 	workerID := newWorker(r.Address)
 
 	res := pb.RegisterRes{
-		Success:  true,
 		WorkerID: workerID,
 	}
 

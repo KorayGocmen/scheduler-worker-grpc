@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // jobsMutex is the lock to access jobs map.
@@ -44,9 +46,7 @@ func startScript(command, path string) (string, error) {
 	jobsMutex.Lock()
 	defer jobsMutex.Unlock()
 
-	// TODO: Change this back
-	// jobID := uuid.New().String()
-	jobID := "test_job"
+	jobID := uuid.New().String()
 	outFilePath := fmt.Sprintf("%s.out", jobID)
 
 	outfile, err := os.Create(outFilePath)

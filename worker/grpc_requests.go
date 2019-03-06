@@ -33,7 +33,7 @@ func registerWorker() {
 	}
 
 	workerID = r.WorkerID
-	log.Printf("Registered OK: %t, ID: %s", r.Success, r.WorkerID)
+	log.Printf("Registered ID: %s", r.WorkerID)
 }
 
 // deregisterWorker deregisters the calling worker from the scheduler.
