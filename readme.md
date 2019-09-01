@@ -30,7 +30,7 @@
 
 # Scheduler Overview
 
-* [Scheduler Details](scheduler/scheduler.md)
+* [Scheduler Details](scheduler/readme.md)
 * [API Docs](scheduler/api.md)
 * All config parameters are specified in the config.toml file
 * Support a GRPC-API (Appendix A) and an HTTP-API.
@@ -55,7 +55,7 @@
 
 # Worker Overview
 
-* [Worker Details](worker/worker.md)
+* [Worker Details](worker/readme.md)
 * All config parameters are specified in the config.toml file
 * Support a GRPC-API (Appendix B)
 * Jobs are basically scripts that are held in the specified folder in the config.
