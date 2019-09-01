@@ -55,7 +55,7 @@ addr = "127.0.0.1:3000"
 ## HTTP Server
 ---
 
-Detailed API documentation for available methods can be found in [API Docs](scheduler/api.md).
+Detailed API documentation for available methods can be found in [API Docs](api.md).
 
 
 ## GRPC Server
