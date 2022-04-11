@@ -1,7 +1,7 @@
 # Scheduler-Worker Cluster Architecture
 
 Read full blog post here:
-http://www.koraygocmen.com/single-scheduler-multiple-worker-architecture-with-grpc-and-go-part-1
+http://www.koraygocmen.com/blog/single-scheduler-multiple-worker-architecture-with-grpc-and-go-part-1
 
 # Goal
 
